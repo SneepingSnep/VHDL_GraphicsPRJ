@@ -6,6 +6,7 @@ entity GraphicgenTOP is
     Port (
         clk       : in  STD_LOGIC;
         reset : in std_logic;
+        BTNL,BTNR : in std_logic;
         rgb   : out STD_LOGIC_VECTOR (11 downto 0);
         hsync    : out STD_LOGIC;
         vsync    : out STD_LOGIC
@@ -25,13 +26,26 @@ architecture Behavioral of GraphicgenTOP is
     Constant MinH : integer := 0;
     Constant MinV : integer := 0;
     
-    signal bPosH : integer :=0;
-    signal bPosV : integer :=0;
+    signal bPosH : integer :=40;
+    signal bPosV : integer :=40;
     
     
 
     signal hs : integer range 0 to 799 := 0;
     signal vs : integer range 0 to 524 := 0;
+    
+    type positionstatetype is (left, right, stationary);
+    signal posState, posNextState : positionstatetype;
+    
+    signal BTNRdb,BTNLdb : std_logic;
+    signal leftEN,rightEN : std_logic;
+    
+    
+    component BTNdb
+  port( Reset, Clk: in std_logic;
+        BTNin: in std_logic;
+        BTNout: out std_logic);
+end component;
 
 begin
 
@@ -111,10 +125,14 @@ begin
         
 --    end process;
     
+    
+    
+    
+    
     drawgame : process(clk25,reset)
     begin
         if reset = '1' then
-            bPosH <= MaxH - bSize;
+            
         elsif rising_edge(clk25) then
             
             -- Horizontal counter
@@ -148,7 +166,7 @@ begin
                 vsync <= '1';
             end if;
 
-             if hs <= bPosH + bSize and vs <= bPosV + bSize then
+             if hs < bPosH + bSize and hs >= bPosH and vs < bPosV + bSize and vs >= bPosV then
             rgb <= "111100000000"; -- red
         else
             rgb <= (others => '0');
@@ -156,5 +174,56 @@ begin
 
         end if;
     end process;
+    
+    
+    
+    
+    posStateReg : process(Clk, Reset)
+begin   
+    if Reset = '1' then
+        posState <= stationary;
+    elsif rising_edge(Clk) then
+        posState <= posNextState;
+    end if;
+    
+ end process;
+
+
+posHorizontalReg : process(leftEN, rightEN)
+    begin
+        if rising_edge(clk) then
+        if leftEN = '1' then 
+            bPosH <= bPosH - 1;
+        elsif rightEN = '1' then
+            bPosH <= bPosH + 1;
+        end if;
+        end if;
+    end process;
+
+
+posdec : process(posState,BTNRdb,BTNLdb)
+    begin
+    leftEN <='0';
+    rightEN <= '0';
+        case posState is
+            when stationary =>
+                if BTNRdb = '1' then
+                    posNextState <= right;
+                elsif BTNLdb = '1' then
+                    posNextState <= left;
+                else 
+                    posNextState <= stationary;
+                end if;
+            when right =>
+                rightEN <= '1';
+                posNextState <= stationary; 
+            when left =>
+                leftEN <= '1';
+                posNextState <= stationary;
+         end case;
+    end process;
+
+DebR: BTNdb port map (Reset => Reset, Clk => Clk, BTNin => BTNR, BTNout => BTNRdb);
+DebL: BTNdb port map (Reset => Reset, Clk => Clk, BTNin => BTNL, BTNout => BTNLdb);
     
 end Behavioral;
