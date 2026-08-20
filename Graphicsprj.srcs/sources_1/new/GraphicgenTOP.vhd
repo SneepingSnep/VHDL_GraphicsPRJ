@@ -41,7 +41,7 @@ architecture Behavioral of GraphicgenTOP is
     signal leftEN,rightEN : std_logic;
     
     
-    component BTNdb
+    component Local_db
   port( Reset, Clk: in std_logic;
         BTNin: in std_logic;
         BTNout: out std_logic);
@@ -191,13 +191,13 @@ begin
 
 posHorizontalReg : process(leftEN, rightEN)
     begin
-        if rising_edge(clk) then
+      if rising_edge(clk) then
         if leftEN = '1' then 
             bPosH <= bPosH - 1;
         elsif rightEN = '1' then
             bPosH <= bPosH + 1;
         end if;
-        end if;
+      end if;
     end process;
 
 
@@ -223,7 +223,7 @@ posdec : process(posState,BTNRdb,BTNLdb)
          end case;
     end process;
 
-DebR: BTNdb port map (Reset => Reset, Clk => Clk, BTNin => BTNR, BTNout => BTNRdb);
-DebL: BTNdb port map (Reset => Reset, Clk => Clk, BTNin => BTNL, BTNout => BTNLdb);
+DebR: Local_db port map (Reset => Reset, Clk => Clk, BTNin => BTNR, BTNout => BTNRdb);
+DebL: Local_db port map (Reset => Reset, Clk => Clk, BTNin => BTNL, BTNout => BTNLdb);
     
 end Behavioral;
