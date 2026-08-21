@@ -36,12 +36,13 @@ end local_db;
 architecture Behavioral of local_db is
 
 constant CountMax: std_logic_vector(11 downto 0) := X"F00";
+constant holdingCountMax: std_logic_vector(27 downto 0) := X"2FAF080";
 
 type StateType is (BTNup, wBTNup, BTNdown, wBTNdown);
 signal State, nState: StateType;  
 signal count: std_logic_vector(11 downto 0);
-signal CountEN, CountClr: std_logic;
-
+signal CountEN, CountClr, HcountEN: std_logic;
+signal holdingcount : std_logic_vector(27 downto 0);
 begin
 
 StateReg: process (Reset, Clk)
@@ -55,6 +56,7 @@ end process;
 StateDec: process (state, BTNin, Count)
 begin
   CountEN <= '0';
+  HcountEN <= '0';
   CountClr <= '0';
   BTNout <= '0';
   nState <= BTNup;
@@ -71,17 +73,22 @@ begin
 		CountEN <= '1';
 		if Count = CountMax then
 		  BTNout <= '1';
+		  CountClr <= '1';
 		  nState <= BTNdown;
-		  end if;
 		else
 		  nState <= wBTNup;
 		end if;
 
     when BTNdown =>
-		CountClr <= '1';
 		if BTNin = '0' then
 		  nState <= wBTNdown;
+		  CountClr <= '1';
 		else
+		  HcountEN <= '1';
+		  if (holdingcount = holdingCountMax) then
+		      BTNout <= '1';
+		      CountClr <= '1';
+		  end if;
 		  nState <= BTNdown;
 		end if;
 
@@ -98,12 +105,15 @@ end process;
 
 CountReg: process(Reset, Clk)
 begin
-  if Reset = '1' then Count <= X"000";
+  if Reset = '1' then Count <= X"000"; holdingcount <= "0000000000000000000000000000";
   elsif Clk'event and Clk = '1' then
     if CountClr = '1' then
 	   Count <= X"000";
+	   holdingcount <= "0000000000000000000000000000";
     elsif CountEN = '1' then
 	   Count <= Count + '1';
+	elsif HcountEN = '1' then
+	   holdingcount <= holdingcount + '1';
     end if;
   end if;
 end process;
