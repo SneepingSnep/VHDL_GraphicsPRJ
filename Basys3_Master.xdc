@@ -35,6 +35,11 @@ set_property PACKAGE_PIN T17 [get_ports {BTNR}]
 	set_property IOSTANDARD LVCMOS33 [get_ports {BTNR}]
 set_property PACKAGE_PIN W19 [get_ports {BTNL}]					
 	set_property IOSTANDARD LVCMOS33 [get_ports {BTNL}]
+set_property PACKAGE_PIN T18 [get_ports {BTNUP}]					
+	set_property IOSTANDARD LVCMOS33 [get_ports {BTNUP}]
+set_property PACKAGE_PIN U17 [get_ports {BTNDOWN}]					
+	set_property IOSTANDARD LVCMOS33 [get_ports {BTNDOWN}]
+
 
 #VGA Connector
 set_property PACKAGE_PIN G19 [get_ports {rgb[8]}]				
